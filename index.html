@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>모두의청약</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#eef5ff;
+}
+
+/* 전체 */
+.app{
+  max-width:420px;
+  margin:auto;
+  min-height:100vh;
+}
+
+/* 배너 */
+.banner{
+  display:flex;
+  overflow-x:auto;
+}
+.banner div{
+  min-width:100%;
+  padding:12px;
+  font-weight:bold;
+  text-align:center;
+}
+.b1{background:#ff7a00;color:white;}
+.b2{background:#ffd84d;}
+
+/* 제목 */
+.title{
+  text-align:center;
+  font-size:28px;
+  color:#007bff;
+  font-weight:bold;
+  margin:15px 0;
+}
+
+/* 카드 */
+.card{
+  background:white;
+  margin:12px;
+  padding:16px;
+  border-radius:16px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* 버튼 */
+.btn{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  font-size:16px;
+  font-weight:bold;
+  margin-top:10px;
+}
+.blue{background:#007bff;color:white;}
+.red{background:#ff4d4f;color:white;}
+
+/* 입력 */
+input{
+  width:100%;
+  padding:14px;
+  border-radius:12px;
+  border:1px solid #ccc;
+}
+
+/* 숨김 */
+.hidden{display:none;}
+
+/* 아파트 카드 */
+.apt{
+  margin:10px 0;
+  padding:14px;
+  border-radius:14px;
+  background:#f7faff;
+}
+.apt.active{
+  border:2px solid #007bff;
+}
+
+/* 효과 */
+.big{
+  text-align:center;
+  font-size:30px;
+  font-weight:bold;
+  color:#007bff;
+  animation:pop 0.5s;
+}
+
+@keyframes pop{
+  from{transform:scale(0.5);}
+  to{transform:scale(1);}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<!-- 배너 -->
+<div class="banner">
+  <div class="b1">🥛 사나나우유 광고</div>
+  <div class="b2">🏥 쏙딱 광고</div>
+</div>
+
+<!-- 로그인 -->
+<div id="login">
+  <div class="title">모두의청약</div>
+  <div class="card">
+    <input id="id" placeholder="아이디 입력">
+    <button class="btn blue" onclick="login()">로그인</button>
+  </div>
+</div>
+
+<!-- 아파트 -->
+<div id="apt" class="hidden">
+  <div class="title">아파트 선택</div>
+  <div class="card" id="aptList"></div>
+  <div class="card">
+    <button id="nextBtn" class="btn blue hidden" onclick="goCert()">다음</button>
+  </div>
+</div>
+
+<!-- 인증 -->
+<div id="cert" class="hidden">
+  <div class="title">인증서 선택</div>
+  <div class="card">
+    <button class="btn blue" onclick="kakao()">카카오인증서</button>
+    <button class="btn blue" onclick="naver()">네이버인증서</button>
+  </div>
+</div>
+
+<!-- 결과 -->
+<div id="result" class="hidden">
+  <div class="title">청약 결과</div>
+  <div class="card">
+    <p id="people"></p>
+    <p id="winners"></p>
+    <button class="btn blue" onclick="showResult()">결과보기</button>
+  </div>
+</div>
+
+<!-- 당첨 -->
+<div id="final" class="hidden">
+  <div class="big">🎉 당첨되셨습니다! 🎉</div>
+
+  <div id="docArea" class="hidden">
+    <div class="card" onclick="downloadDoc()">
+      📄 청약 당첨 서류 (터치해서 다운로드)
+    </div>
+
+    <div style="text-align:center;margin-top:10px;">
+      이 서류를 지참하시고 해당 지역 구청으로 가주세요!
+    </div>
+
+    <div class="card">
+      <button class="btn red" onclick="reset()">나가기</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+let selected = "";
+let count = 0;
+
+function login(){
+  let id = document.getElementById("id").value;
+  if(id==="욱재"||id==="정미"){
+    login.hide();
+    apt.show();
+    load();
+  }else{
+    alert("아이디 틀림!");
+  }
+}
+
+HTMLElement.prototype.hide=function(){this.classList.add("hidden")}
+HTMLElement.prototype.show=function(){this.classList.remove("hidden")}
+
+function load(){
+  const list = document.getElementById("aptList");
+  list.innerHTML="";
+
+  const data=[
+    ["솟대 캐슬","42평"],
+    ["수르지오 퀀텀","39평"],
+    ["슴호어울림 5차","41평"]
+  ];
+
+  data.forEach(d=>{
+    let people=Math.floor(Math.random()*100000)+100000;
+    let full=people>=200000;
+
+    let div=document.createElement("div");
+    div.className="apt";
+    div.innerHTML=`
+      <b>${d[0]} (${d[1]})</b><br>
+      신청자 ${people.toLocaleString()}명
+      ${full?"<br><span style='color:red'>마감</span>":""}
+    `;
+
+    if(!full){
+      div.onclick=()=>{
+        document.querySelectorAll(".apt").forEach(e=>e.classList.remove("active"));
+        div.classList.add("active");
+        selected=d[0];
+        nextBtn.show();
+      }
+    }
+
+    list.appendChild(div);
+  });
+}
+
+function goCert(){
+  apt.hide(); cert.show();
+}
+
+function kakao(){
+  setTimeout(()=>{
+    cert.hide(); result.show();
+    count=Math.floor(Math.random()*100000)+100000;
+    people.innerText="신청자 수: "+count.toLocaleString();
+    winners.innerText="당첨자: 이수현, 김민준, 박서연, 정미, 욱재";
+  },2000);
+}
+
+function naver(){
+  alert("오류! 카카오인증서로 인증 부탁드립니다.");
+}
+
+function showResult(){
+  result.hide(); final.show();
+  setTimeout(()=>{docArea.show()},2000);
+}
+
+function downloadDoc(){
+  let blob=new Blob(["청약 당첨!\n"+selected],{type:"text"});
+  let a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="청약.txt";
+  a.click();
+}
+
+function reset(){
+  location.reload();
+}
+</script>
+
+</body>
+</html>
