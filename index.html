@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>모두의청약</title>
 
 <style>
@@ -12,7 +12,6 @@ body{
   background:#eef5ff;
 }
 
-/* 전체 */
 .app{
   max-width:420px;
   margin:auto;
@@ -27,13 +26,12 @@ body{
 .banner div{
   min-width:100%;
   padding:12px;
-  font-weight:bold;
   text-align:center;
+  font-weight:bold;
 }
 .b1{background:#ff7a00;color:white;}
 .b2{background:#ffd84d;}
 
-/* 제목 */
 .title{
   text-align:center;
   font-size:28px;
@@ -42,7 +40,6 @@ body{
   margin:15px 0;
 }
 
-/* 카드 */
 .card{
   background:white;
   margin:12px;
@@ -51,7 +48,13 @@ body{
   box-shadow:0 5px 15px rgba(0,0,0,0.1);
 }
 
-/* 버튼 */
+input{
+  width:100%;
+  padding:14px;
+  border-radius:12px;
+  border:1px solid #ccc;
+}
+
 .btn{
   width:100%;
   padding:14px;
@@ -60,46 +63,29 @@ body{
   font-size:16px;
   font-weight:bold;
   margin-top:10px;
+  cursor:pointer;
 }
 .blue{background:#007bff;color:white;}
 .red{background:#ff4d4f;color:white;}
 
-/* 입력 */
-input{
-  width:100%;
-  padding:14px;
-  border-radius:12px;
-  border:1px solid #ccc;
-}
-
-/* 숨김 */
 .hidden{display:none;}
 
-/* 아파트 카드 */
 .apt{
-  margin:10px 0;
+  background:#f7faff;
   padding:14px;
   border-radius:14px;
-  background:#f7faff;
+  margin:10px 0;
 }
 .apt.active{
   border:2px solid #007bff;
 }
 
-/* 효과 */
 .big{
   text-align:center;
   font-size:30px;
   font-weight:bold;
   color:#007bff;
-  animation:pop 0.5s;
 }
-
-@keyframes pop{
-  from{transform:scale(0.5);}
-  to{transform:scale(1);}
-}
-
 </style>
 </head>
 
@@ -114,57 +100,57 @@ input{
 </div>
 
 <!-- 로그인 -->
-<div id="login">
+<div id="screen-login">
   <div class="title">모두의청약</div>
   <div class="card">
-    <input id="id" placeholder="아이디 입력">
-    <button class="btn blue" onclick="login()">로그인</button>
+    <input id="input-id" placeholder="아이디 입력">
+    <button class="btn blue" onclick="handleLogin()">로그인</button>
   </div>
 </div>
 
 <!-- 아파트 -->
-<div id="apt" class="hidden">
+<div id="screen-apt" class="hidden">
   <div class="title">아파트 선택</div>
-  <div class="card" id="aptList"></div>
+  <div class="card" id="apt-list"></div>
   <div class="card">
-    <button id="nextBtn" class="btn blue hidden" onclick="goCert()">다음</button>
+    <button id="btn-next" class="btn blue hidden" onclick="goCert()">다음</button>
   </div>
 </div>
 
 <!-- 인증 -->
-<div id="cert" class="hidden">
+<div id="screen-cert" class="hidden">
   <div class="title">인증서 선택</div>
   <div class="card">
-    <button class="btn blue" onclick="kakao()">카카오인증서</button>
-    <button class="btn blue" onclick="naver()">네이버인증서</button>
+    <button class="btn blue" onclick="selectKakao()">카카오인증서</button>
+    <button class="btn blue" onclick="selectNaver()">네이버인증서</button>
   </div>
 </div>
 
 <!-- 결과 -->
-<div id="result" class="hidden">
+<div id="screen-result" class="hidden">
   <div class="title">청약 결과</div>
   <div class="card">
-    <p id="people"></p>
-    <p id="winners"></p>
-    <button class="btn blue" onclick="showResult()">결과보기</button>
+    <p id="text-people"></p>
+    <p id="text-winners"></p>
+    <button class="btn blue" onclick="showFinal()">결과보기</button>
   </div>
 </div>
 
 <!-- 당첨 -->
-<div id="final" class="hidden">
+<div id="screen-final" class="hidden">
   <div class="big">🎉 당첨되셨습니다! 🎉</div>
 
-  <div id="docArea" class="hidden">
+  <div id="doc-area" class="hidden">
     <div class="card" onclick="downloadDoc()">
       📄 청약 당첨 서류 (터치해서 다운로드)
     </div>
 
-    <div style="text-align:center;margin-top:10px;">
+    <p style="text-align:center;">
       이 서류를 지참하시고 해당 지역 구청으로 가주세요!
-    </div>
+    </p>
 
     <div class="card">
-      <button class="btn red" onclick="reset()">나가기</button>
+      <button class="btn red" onclick="resetAll()">나가기</button>
     </div>
   </div>
 </div>
@@ -172,89 +158,116 @@ input{
 </div>
 
 <script>
-let selected = "";
-let count = 0;
+let selectedApt = "";
 
-function login(){
-  let id = document.getElementById("id").value;
-  if(id==="욱재"||id==="정미"){
-    login.hide();
-    apt.show();
-    load();
+/* 로그인 */
+function handleLogin(){
+  const id = document.getElementById("input-id").value;
+
+  if(id === "욱재" || id === "정미"){
+    showScreen("screen-login", false);
+    showScreen("screen-apt", true);
+    loadApartments();
   }else{
     alert("아이디 틀림!");
   }
 }
 
-HTMLElement.prototype.hide=function(){this.classList.add("hidden")}
-HTMLElement.prototype.show=function(){this.classList.remove("hidden")}
+/* 화면 전환 */
+function showScreen(id, show){
+  const el = document.getElementById(id);
+  if(show){
+    el.classList.remove("hidden");
+  }else{
+    el.classList.add("hidden");
+  }
+}
 
-function load(){
-  const list = document.getElementById("aptList");
-  list.innerHTML="";
+/* 아파트 */
+function loadApartments(){
+  const list = document.getElementById("apt-list");
+  list.innerHTML = "";
 
-  const data=[
+  const data = [
     ["솟대 캐슬","42평"],
     ["수르지오 퀀텀","39평"],
     ["슴호어울림 5차","41평"]
   ];
 
-  data.forEach(d=>{
-    let people=Math.floor(Math.random()*100000)+100000;
-    let full=people>=200000;
+  data.forEach(item=>{
+    const people = Math.floor(Math.random()*100000)+100000;
+    const isFull = people >= 200000;
 
-    let div=document.createElement("div");
-    div.className="apt";
-    div.innerHTML=`
-      <b>${d[0]} (${d[1]})</b><br>
+    const div = document.createElement("div");
+    div.className = "apt";
+
+    div.innerHTML = `
+      <b>${item[0]} (${item[1]})</b><br>
       신청자 ${people.toLocaleString()}명
-      ${full?"<br><span style='color:red'>마감</span>":""}
+      ${isFull ? "<br><span style='color:red'>마감</span>" : ""}
     `;
 
-    if(!full){
-      div.onclick=()=>{
-        document.querySelectorAll(".apt").forEach(e=>e.classList.remove("active"));
+    if(!isFull){
+      div.onclick = function(){
+        document.querySelectorAll(".apt").forEach(el=>el.classList.remove("active"));
         div.classList.add("active");
-        selected=d[0];
-        nextBtn.show();
-      }
+        selectedApt = item[0];
+        document.getElementById("btn-next").classList.remove("hidden");
+      };
     }
 
     list.appendChild(div);
   });
 }
 
+/* 다음 */
 function goCert(){
-  apt.hide(); cert.show();
+  showScreen("screen-apt", false);
+  showScreen("screen-cert", true);
 }
 
-function kakao(){
+/* 인증 */
+function selectKakao(){
   setTimeout(()=>{
-    cert.hide(); result.show();
-    count=Math.floor(Math.random()*100000)+100000;
-    people.innerText="신청자 수: "+count.toLocaleString();
-    winners.innerText="당첨자: 이수현, 김민준, 박서연, 정미, 욱재";
+    showScreen("screen-cert", false);
+    showScreen("screen-result", true);
+
+    const count = Math.floor(Math.random()*100000)+100000;
+    document.getElementById("text-people").innerText =
+      "신청자 수: " + count.toLocaleString();
+
+    document.getElementById("text-winners").innerText =
+      "당첨자: 이수현, 김민준, 박서연, 정미, 욱재";
+
   },2000);
 }
 
-function naver(){
+function selectNaver(){
   alert("오류! 카카오인증서로 인증 부탁드립니다.");
 }
 
-function showResult(){
-  result.hide(); final.show();
-  setTimeout(()=>{docArea.show()},2000);
+/* 결과 */
+function showFinal(){
+  showScreen("screen-result", false);
+  showScreen("screen-final", true);
+
+  setTimeout(()=>{
+    document.getElementById("doc-area").classList.remove("hidden");
+  },2000);
 }
 
+/* 다운로드 */
 function downloadDoc(){
-  let blob=new Blob(["청약 당첨!\n"+selected],{type:"text"});
-  let a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="청약.txt";
+  const text = "청약 당첨 서류\n아파트: " + selectedApt;
+  const blob = new Blob([text], {type:"text/plain"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "청약서류.txt";
   a.click();
 }
 
-function reset(){
+/* 초기화 */
+function resetAll(){
   location.reload();
 }
 </script>
